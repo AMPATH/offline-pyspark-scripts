@@ -1,27 +1,56 @@
 {
   "kafka" : {
-    "topics":["amrsmysql.amrs.obs"],
+    "topics":["XXXXXXXXXXX"],
     "config":{
       "metadata.broker.list": "kafka:9092",
       "auto.offset.reset": "smallest"
     }
   },
   "kafka-orders" : {
-    "topics":["amrsmysql.amrs.orders"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "largest"
-    }
-  },  
-  "kafka-person" : {
-    "topics":["amrsmysql.amrs.person"],
+    "topics":["XXXXXXXXXXX"],
     "config":{
       "metadata.broker.list": "kafka:9092",
       "auto.offset.reset": "smallest"
     }
   },
-   "kafka-encounter-obs-orders" : {
-    "topics": ["amrsmysql.amrs.encounter"],
+ "kafka-patient-program" : {
+    "topics":["XXXXXXXXXXX"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+  
+  "kafka-person" : {
+    "topics":["XXXXXXXXXXX"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+"kafka-labs" : {
+    "topics":["XXXXXXXXXXX"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+ "kafka-encounter" : {
+    "topics": ["XXXXXXXXXXX"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+ "kafka-hiv-summary" : {
+    "topics": ["XXXXXXXXXXX"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+ },
+  "kafka-vitals" : {
+    "topics": ["XXXXXXXXXXX"],
     "config":{
       "metadata.broker.list": "kafka:9092",
       "auto.offset.reset": "smallest"
@@ -33,8 +62,8 @@
     "packages":["com.datastax.spark:spark-cassandra-connector_2.11:2.4.0",
             "org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0"],
     "conf":{
-      "spark.cassandra.connection.host":"cassandra",
-      "spark.cassandra.connection.port":"9042",
+      "spark.cassandra.connection.host":"******",
+      "spark.cassandra.connection.port":"****",
       "spark.cassandra.auth.username": "***********",
       "spark.cassandra.auth.password": "*********",
       "spark.cassandra.output.consistency.level": "ANY",
@@ -54,5 +83,21 @@
       "baseUrl": "***************",
       "username": "*********************",
       "password": "***********************"
-  }
+  },
+  "mysql" : {
+    "host": "****",
+    "port": "****",
+    "username": "****",
+    "password": "****"
+},
+"couch": {
+  "host": "",
+  "username":"",
+  "password": ""
+},
+"cassandra": {
+  "host": "",
+  "username": "",
+  "password": ""
+}
 }
