@@ -1,0 +1,7 @@
+notebooks/
+unused/
+*.ipynb
+config.json
+.ipynb_checkpoints/
+__pycache__/
+checkpoints

@@ -1,0 +1,58 @@
+{
+  "kafka" : {
+    "topics":["amrsmysql.amrs.obs"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+  "kafka-orders" : {
+    "topics":["amrsmysql.amrs.orders"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "largest"
+    }
+  },  
+  "kafka-person" : {
+    "topics":["amrsmysql.amrs.person"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+   "kafka-encounter-obs-orders" : {
+    "topics": ["amrsmysql.amrs.encounter"],
+    "config":{
+      "metadata.broker.list": "kafka:9092",
+      "auto.offset.reset": "smallest"
+    }
+  },
+  "spark": {
+    "app_name": "Couch Streaming Pipeline",
+    "master": "local[*]",
+    "packages":["com.datastax.spark:spark-cassandra-connector_2.11:2.4.0",
+            "org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0"],
+    "conf":{
+      "spark.cassandra.connection.host":"cassandra",
+      "spark.cassandra.connection.port":"9042",
+      "spark.cassandra.auth.username": "***********",
+      "spark.cassandra.auth.password": "*********",
+      "spark.cassandra.output.consistency.level": "ANY",
+      "spark.executor.memory": "35g",
+      "spark.streaming.backpressure.enabled": "true",
+      "spark.streaming.receiver.writeAheadLog.enable": "true",
+      "spark.streaming.unpersist":"true",
+      "spark.executor.extrajavaoptions": "-Xmx2048m",
+      "spark.streaming.kafka.consumer.poll.ms": "50"
+    },
+    "streaming": {
+    "batchDuration": 10,
+    "checkpointDir": "./checkpoint"
+  }
+  },
+  "amrs_rest": {
+      "baseUrl": "***************",
+      "username": "*********************",
+      "password": "***********************"
+  }
+}
