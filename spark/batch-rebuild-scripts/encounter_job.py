@@ -13,7 +13,7 @@ import pyspark.sql.functions as f
 import datetime
 from obs_job import ObsJob 
 from job import Job
-from config import getConfig
+from config.config import getConfig
 
 
 import os
@@ -40,10 +40,10 @@ def save_to_cassandra(df, table):
 
 spark = SparkSession.builder\
 .config('spark.sql.repl.eagerEval.enabled', True)\
-    .config('cloudant.host', '10.50.80.115:5984')\
+    .config('cloudant.host', config['couch']['host'])\
         .config('cloudant.username', config['couch']['username'])\
             .config('cloudant.password', config['couch']['username'])\
-                .config('cloudant.protocol', 'http')\
+                .config('cloudant.protocol', config['couch']['protocol'])\
                     .config('spark.rdd.compress', True)\
                         .config('spark.sql.crossJoin.enabled', True)\
                             .config("jsonstore.rdd.maxInPartition", 500).\

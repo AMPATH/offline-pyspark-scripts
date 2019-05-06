@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 import os
-from config import getConfig
+from config.config import getConfig
 
 class Job: 
     
@@ -9,8 +9,8 @@ class Job:
     def getSpark():
         global_config = getConfig()
         spark_submit_str = ('--driver-memory 40g --executor-memory 3g --packages org.apache.spark:spark-sql_2.11:2.4.0,org.apache.bahir:spark-sql-cloudant_2.11:2.3.2,com.datastax.spark:spark-cassandra-connector_2.11:2.4.0'
-                            ' --driver-class-path /home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar' 
-                            ' --jars /home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar'
+                            ' --driver-class-path ./jars/mysql-connector-java-8.0.16.jar' 
+                            ' --jars ./jars/mysql-connector-java-8.0.16.jar'
                             ' pyspark-shell')
         os.environ['PYSPARK_SUBMIT_ARGS'] = spark_submit_str
         spark = SparkSession\
@@ -19,7 +19,7 @@ class Job:
         .config('cloudant.host', global_config['couch']['host'])\
         .config('cloudant.username', global_config['couch']['username'])\
         .config('cloudant.password', global_config['couch']['password'])\
-        .config('cloudant.protocol', 'http')\
+        .config('cloudant.protocol', global_config['couch']['protocol'])\
         .config("jsonstore.rdd.partitions", 15000)\
         .config('spark.driver.maxResultSize', "15000M")\
         .config('spark.sql.crossJoin.enabled', True)\

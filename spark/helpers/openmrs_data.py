@@ -17,10 +17,10 @@ def getSpark():
         spark = SparkSession\
         .builder\
         .config('spark.sql.repl.eagerEval.enabled', True)\
-        .config('cloudant.host', '10.50.80.115:5984')\
+        .config('cloudant.host', global_config['couch']['host'])\
         .config('cloudant.username', global_config['couch']['username'])\
         .config('cloudant.password', global_config['couch']['password'])\
-        .config('cloudant.protocol', 'http')\
+        .config('cloudant.protocol', global_config['couch']['protocol'])\
         .config("cloudant.useQuery", True)\
         .config("jsonstore.rdd.partitions", 5)\
         .config('spark.driver.maxResultSize', "15000M")\

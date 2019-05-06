@@ -32,7 +32,7 @@ spark_submit_str = ('--driver-memory 45g --executor-memory 3g'
                     ' --packages org.apache.spark:spark-sql_2.11:2.4.0,org.apache.bahir:spark-sql-cloudant_2.11:2.3.2,org.apache.spark:spark-streaming-kafka-0-8_2.11:2.3.0'
                     ' --driver-class-path /home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar' 
                     ' --jars /home/jovyan/jars/spark-cassandra-connector.jar,/home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar'
-                    ' --conf spark.cassandra.connection.host="cassandra",spark.cloudant.host="10.50.80.115" pyspark-shell')
+                    ' pyspark-shell')
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = spark_submit_str
 
@@ -55,10 +55,28 @@ def get_spark_instance(sparkConf=None):
 # In[ ]:
 
 
-def read_from_mysql(db_name, table_name):  
-    config = getConfig()
+def read_from_mysql(db_name, table_name, config):  
+
     spark = get_spark_instance()
     return spark.read.format("jdbc").      option("url", "jdbc:mysql://"+config['mysql']['host']+":" + config['mysql']['port']+ "/" + db_name + "?zeroDateTimeBehavior=convertToNull").      option("useUnicode", "true").      option("continueBatchOnError","true").      option("useSSL", "false").      option("user", config['mysql']['username']).      option("password", config['mysql']['password']).      option("dbtable",table_name).      load()
+
+
+# In[ ]:
+
+
+def fetch_qualifying_patients(date, location_id):
+        print('Fetching qualifying patients for ' + date)
+        query = """(select distinct(person_id) from
+                          etl.flat_hiv_summary_v15b
+                          where rtc_date between date_sub('{0}', interval 28 day)
+                          and date_add('{0}',interval 2 day) and location_id = {1}) foo""".format(date, location_id)
+        
+        qualifying_patients = read_from_mysql(query, 'etl', {
+        'partitionColumn': 'person_id', 
+        'fetchsize':50,
+        'lowerBound': 1500,
+        'upperBound': 9000000,
+        'numPartitions': 900})
 
 
 # In[ ]:
@@ -72,8 +90,22 @@ def save_to_cassandra(dataframe, table, keyspace="amrs"):
 # In[ ]:
 
 
-def get_lab_orders_stream(kafka_stream):
-    return kafka_stream         .map(lambda msg: msg['payload']['after'])
+def parse_dates(payload):
+    for k,v in payload.items(): 
+        if(type(v) is int and v > 1000000000 and v % 1000 == 0):
+              payload[k] = int(v/1000)
+            
+        else:
+            payload[k] = v
+    print(payload, 'payload')
+    return payload
+
+
+# In[ ]:
+
+
+def get_vitals_stream(kafka_stream):
+    return kafka_stream         .filter(lambda msg: 'sample_vitals_2' in msg['schema']['name'])         .map(lambda msg: msg['payload']['after'])
 
 
 # In[ ]:
@@ -93,17 +125,13 @@ def start_spark(app_name='my_spark_app', master='local[*]', jar_packages=[],spar
     
     def createSSC():
         ssc = StreamingContext(sc, ssc_config['batchDuration'])
-        ssc.checkpoint('checkpoints/lab_orders')
+        ssc.checkpoint('checkpoints/vitals')
         kafka_stream = KafkaUtils          .createDirectStream(ssc,topics=kafka_config['topics'],kafkaParams=kafka_config['config'])           .map(lambda msg: json.loads(msg[1]))
         if callback is not None:
             callback(kafka_stream=kafka_stream,sc=sc,spark_conf=spark_conf)
         return ssc
     
-    #ssc = StreamingContext.getOrCreate('checkpoints/lab_orders', createSSC)  
-    ssc = StreamingContext(sc, ssc_config['batchDuration'])
-    kafka_stream = KafkaUtils      .createDirectStream(ssc,topics=kafka_config['topics'],kafkaParams=kafka_config['config'])       .map(lambda msg: json.loads(msg[1]))
-    if callback is not None:
-        callback(kafka_stream=kafka_stream,sc=sc,spark_conf=spark_conf)
+    ssc = StreamingContext.getOrCreate('checkpoints/vitals', createSSC)    
     ssc.start()
     ssc.awaitTermination()
 
@@ -113,58 +141,44 @@ def start_spark(app_name='my_spark_app', master='local[*]', jar_packages=[],spar
 
 def rebuild_microbatch(rdd, spark_conf):
     try:
-        orders = rdd.collect()
+        vitals = rdd.collect()
 
-        if len(orders) > 0:
+        if len(vitals) > 0:
             start_time = datetime.datetime.utcnow()  
             print("\n --- Micro-Batch --- \n")
-            print("Building Order Objects " + time.ctime())
+            print("Building encounter objects " + time.ctime())
            
             rows = []
-            location_ids = set()
-            patient_ids = set()
-            order_ids = set()
-            orderer_ids = set()
             encounter_ids = set()
+            location_ids = set()
+            visit_ids = set()
+            patient_ids = set()
+            form_ids = set()
             
-            for order in orders:
+            for vital in vitals:
                 ## filters
-                order_ids.add(order['order_id'])      
-                patient_ids.add(order['patient_id'])
-                orderer_ids.add(order['orderer'])
-                encounter_ids.add(order['encounter_id'])
+                encounter_ids.add(vital['encounter_id'])
+                location_ids.add(vital['location_id'])
                 
-            filters = {
-                'obs': {
-                    'column': 'order_id',
-                    'values': order_ids
-                },
-                'provider': {
-                    'column': 'provider_id',
-                    'values': orderer_ids
-                },
-                'person': {
-                    'column': 'person_id',
-                    'values': patient_ids
-                },
-                'patient': {
-                    'column': 'patient_id',
-                    'values': patient_ids
-                },
-                'encounter': {
-                    'column': 'encounter_id',
-                    'values': encounter_ids
-                }
-            }
-            
+                row = Row(**vital)
+                rows.append(row)
 
-            query = """(select * from orders where order_id in ({0})) foo""".format(",".join([str(i) for i in order_ids]))
-            lab_orders = read_from_mysql('amrs', query)                         .select("order_id", "order_number", "order_type_id", "uuid", "date_activated", "patient_id", "encounter_id", "orderer", "concept_id")                         .withColumnRenamed('order_number', 'ordernumber')                         .alias('lab_orders')
+            spark = get_spark_instance(spark_conf)
+            vitals_df = spark.createDataFrame(rows, schemas.get_vitals_schema())                .withColumn('encounter_datetime_parsed', 
+                        f.to_timestamp(f.from_unixtime(f.col('encounter_datetime') / 1000)))\
+                .withColumn('temp_parsed',f.col('temp').cast('double'))\
+                .withColumn('weight_parsed', f.col('weight').cast('double'))\
+                .withColumn('height_parsed', f.col('height').cast('double'))\
+                .drop('encounter_datetime', 'temp', 'weight', 'height')
+            vitals_df.show()
+            new_column_name_list= [x.replace('_parsed', '') for x in vitals_df.columns]
             
-            transformed_lab_orders = transform_lab_orders(lab_orders, True, filters)
-            transformed_lab_orders.show()
-            save_to_cassandra(transformed_lab_orders, 'lab_orders')
-            #trigger_couch_update_jobs(location_ids, enrollment_transformed_df)
+            print(new_column_name_list)
+            
+            vitals_transformed_df = transform_vitals(vitals_df.toDF(*new_column_name_list))
+                
+            save_to_cassandra(vitals_transformed_df, 'vitals')
+            trigger_couch_update_jobs(location_ids, vitals_transformed_df)
 
         
     except:
@@ -180,7 +194,7 @@ def trigger_couch_update_jobs(location_ids, hiv_summary_transformed_df):
 #     for _id in location_ids:
 #         print(_id)
 #         today = datetime.datetime.today().strftime('%Y-%m-%d')
-        today = '2018-01-02'
+        today = '2018-08-01'
         job = CouchBulkUpsert(list(location_ids)[0], today, hiv_summary_transformed_df)
         job.run()
         print('Done with CouchDB --->', time.ctime())
@@ -191,8 +205,8 @@ def trigger_couch_update_jobs(location_ids, hiv_summary_transformed_df):
 
 def start_job(kafka_stream, sc, spark_conf):   
         print("-------------------- Started Pipelines --------------------")
-        spark = get_spark_instance(spark_conf)
-        get_lab_orders_stream(kafka_stream).foreachRDD(lambda rdd: rebuild_microbatch(rdd, spark_conf)) 
+        locations = read_from_mysql('amrs', 'location')
+        get_vitals_stream(kafka_stream).foreachRDD(lambda rdd: rebuild_microbatch(rdd, spark_conf)) 
 
 
 # In[ ]:
@@ -201,7 +215,7 @@ def start_job(kafka_stream, sc, spark_conf):
 def start():
     config = getConfig()
     spark_config = config['spark']
-    kafka_config = config['kafka-orders']
+    kafka_config = config['kafka-vitals']
     start_spark(app_name=spark_config['app_name'],
                          master=spark_config['master'],
                          spark_config=spark_config['conf'],
