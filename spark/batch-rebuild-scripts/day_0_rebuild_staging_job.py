@@ -5,6 +5,10 @@
 # 1. Create a python job file that implements the job interface. The job should build the corresponding Openmrs objects.
 # 2. Create a corresponding database to store the objects in Cassandra
 # 3. Run the rebuild staging job
+import time
+
+import pyspark.sql.functions as f
+from pyspark.sql import SparkSession
 
 from patient_job import PatientJob
 from vitals_job import VitalsJob
@@ -12,10 +16,6 @@ from lab_orders_job import LabOrdersJob
 from labs_job import LabsJob
 from hiv_summary_job import HivSummaryJob
 from encounter_job import EncounterJob
-from patient_job import PatientJob
-import pyspark.sql.functions as f
-import time
-from pyspark.sql import SparkSession
 from program_enrollment_job import ProgramEnrollmentJob
 
 def save_to_cassandra(dataframe, table, keyspace="amrs"):
@@ -49,5 +49,10 @@ def rebuild(jobs):
         end = time.time()
         print("Rebuilding" + job["table"] + "took %.2f seconds" % (end - start))
     
-
-start_couchdb_jobs(cassandra_tables)
+jobs = [{
+                'table': 'vitals',
+                'job': VitalsJob()
+        }]
+        
+rebuild(jobs)
+#start_couchdb_jobs(cassandra_tables)

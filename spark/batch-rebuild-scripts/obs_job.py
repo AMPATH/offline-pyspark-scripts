@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from pyspark.sql import SQLContext, Window, SparkSession
-from pyspark import StorageLevel
-from pyspark.sql.types import StructType, StringType, StructField, \
-    BooleanType, IntegerType, ArrayType, TimestampType, DoubleType
 import datetime
 import time
+
+from pyspark.sql import SQLContext, Window, SparkSession
+from pyspark import StorageLevel
+from pyspark.sql.types import StructType, StringType, StructField, BooleanType, IntegerType, ArrayType, TimestampType, DoubleType
 import pyspark.sql.functions as f
 from pyspark import StorageLevel
+
 from job import Job
 
 

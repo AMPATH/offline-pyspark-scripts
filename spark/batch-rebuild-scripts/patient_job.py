@@ -1,8 +1,10 @@
-from pyspark.sql import SQLContext, Window
-from pyspark.sql.types import StructType, StringType, StructField, BooleanType, IntegerType, ArrayType, TimestampType, DoubleType
 import datetime
 import time
+
+from pyspark.sql import SQLContext, Window
+from pyspark.sql.types import StructType, StringType, StructField, BooleanType, IntegerType, ArrayType, TimestampType, DoubleType
 import pyspark.sql.functions as f
+
 from job import Job
 
 

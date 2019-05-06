@@ -17,7 +17,7 @@ class BulkDelete:
                 .config('cloudant.host', global_config['couch']['host'])\
                 .config('cloudant.username', global_config['couch']['username'])\
                 .config('cloudant.password', global_config['couch']['password'])\
-                .config('cloudant.protocol', 'http')\
+                .config('cloudant.protocol', global_config['couch']['protocol'])\
                 .config("jsonstore.rdd.partitions", 200)\
                 .config("jsonstore.rdd.requestTimeout", 90000000)\
                 .config('spark.rdd.compress', True)\

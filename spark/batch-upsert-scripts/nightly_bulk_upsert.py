@@ -27,7 +27,7 @@ import os
 spark_submit_str = ('--driver-memory 45g --executor-memory 3g --packages org.apache.spark:spark-sql_2.11:2.4.0,org.apache.bahir:spark-sql-cloudant_2.11:2.3.2'
                     ' --driver-class-path /home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar' 
                     ' --jars /home/jovyan/jars/spark-cassandra-connector.jar,/home/jovyan/jars/mysql-connector-java-5.1.42-bin.jar'
-                    ' --conf spark.cassandra.connection.host="cassandra",spark.cloudant.host="10.50.80.115" pyspark-shell')
+                    ' pyspark-shell')
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = spark_submit_str
 
@@ -52,10 +52,10 @@ class CouchBulkUpsert:
         global_config = getConfig()
         self.spark = SparkSession.builder\
             .config('spark.sql.repl.eagerEval.enabled', True)\
-                .config('cloudant.host', '10.50.80.115:5984')\
+                .config('cloudant.host', global_config['couch']['host'])\
                     .config('cloudant.username', global_config['couch']['username'])\
                         .config('cloudant.password', global_config['couch']['password'])\
-                            .config('cloudant.protocol', 'http')\
+                            .config('cloudant.protocol', global_config['couch']['protocol'])\
                                 .config("jsonstore.rdd.partitions", 5)\
                                     .config("jsonstore.rdd.requestTimeout", 90000000)\
                                         .config('spark.rdd.compress', True)\

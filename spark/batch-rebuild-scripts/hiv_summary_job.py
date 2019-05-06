@@ -4,7 +4,7 @@ import datetime
 import time
 import pyspark.sql.functions as f
 from job import Job
-import mappings as mappings
+import helpers.mappings as mappings
 
 class HivSummaryJob(Job):
     
@@ -22,7 +22,7 @@ class HivSummaryJob(Job):
         
         hiv_summary = super().getDataFromMySQL('etl', 'flat_hiv_summary_v15b', {
             'partitionColumn': 'encounter_id', 
-            'fetchsize':4566,cdcd
+            'fetchsize':4566,
             'lowerBound': 1,
             'upperBound': 9000000,
             'numPartitions': 900})

@@ -1,26 +1,23 @@
-import pyspark.sql.functions as f
-from pyspark.sql import SparkSession
 import os
 import time
+
+import pyspark.sql.functions as f
+from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import SQLContext, Window
-from openmrs_schemas import OpenmrsSchema
-from add_new_patients_to_couch import AddPatientsToCouchRunner
-from config import getConfig
 
-
-CASSANDRA_TABLES = ['program_enrollment']
-LOCATION_ID = 13
-LOCATION_NAME = 'Kitale'
-DATE = '2018-01-02'
+from helpers.openmrs_schemas import OpenmrsSchema
+from helpers.add_new_patients_to_couch import AddPatientsToCouchRunner
+from config.config import getConfig
 
 class CouchJobRunner:
     
-    def __init__(self, date, location_id, cassandra_tables):
+    def __init__(self, date, location_id, cassandra_tables, couchdb_name):
         self.location_id = location_id
         self.cassandra_tables = cassandra_tables
         self.date = date
         self.openmrs_schemas = OpenmrsSchema()
+        self.couchdb_name = 'db-{0}'.format(couchdb_name)
         
     def get_spark(self):
         spark_submit_str = ('--driver-memory 40g --executor-memory 3g'
@@ -34,10 +31,10 @@ class CouchJobRunner:
         spark = SparkSession\
         .builder\
         .config('spark.sql.repl.eagerEval.enabled', True)\
-        .config('cloudant.host', )\
+        .config('cloudant.host', config['couch']['host'])\
         .config('cloudant.username', config['couch']['username'])\
         .config('cloudant.password', config['couch']['password'])\
-        .config('cloudant.protocol', 'http')\
+        .config('cloudant.protocol', config['couch']['protocol'])\
         .config("jsonstore.rdd.partitions", 15000)\
         .config('spark.driver.maxResultSize', "15000M")\
         .config('spark.sql.crossJoin.enabled', True)\
@@ -86,9 +83,17 @@ class CouchJobRunner:
         
     def run(self):
         qualifying_patients = self.get_qualifying_patients(self.date, self.location_id)
-        couch_db_name = 'trial'
-        add_patients = AddPatientsToCouchRunner(self.location_id, self.cassandra_tables, qualifying_patients, couch_db_name)
+        add_patients = AddPatientsToCouchRunner(self.location_id, self.cassandra_tables, qualifying_patients, self.couchdb_name)
         add_patients.run()   
         
-            
-        
+
+
+### RUN ###
+           
+CASSANDRA_TABLES = ['vitals']
+LOCATION_ID = 13
+LOCATION_UUID = '08fec056-1352-11df-a1f1-0026b9348838'
+LOCATION_NAME = 'Kitale'
+DATE = '2018-01-02'
+job_runner = CouchJobRunner(DATE, LOCATION_ID, CASSANDRA_TABLES, LOCATION_UUID)
+job_runner.run()

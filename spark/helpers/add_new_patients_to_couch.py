@@ -9,11 +9,11 @@ from config import getConfig
 
 class AddPatientsToCouchRunner:
     
-    def __init__(self, location_id, cassandra_tables, qualifying_patients, couch_db_name):
+    def __init__(self, location_id, cassandra_tables, qualifying_patients, couchdb_name):
         self.location_id = location_id
         self.cassandra_tables = cassandra_tables
         self.qualifying_patients = qualifying_patients
-        self.couch_db_name = couch_db_name
+        self.couchdb_name = couchdb_name
         
         
     def get_spark(self):
@@ -28,10 +28,10 @@ class AddPatientsToCouchRunner:
         spark = SparkSession\
         .builder\
         .config('spark.sql.repl.eagerEval.enabled', True)\
-        .config('cloudant.host', '10.50.80.115:5984')\
+        .config('cloudant.host', config['couch']['host'])\
         .config('cloudant.username', config['couch']['username'])\
         .config('cloudant.password', config['couch']['password'])\
-        .config('cloudant.protocol', 'http')\
+        .config('cloudant.protocol', config['couch']['protocol'])\
         .config("jsonstore.rdd.partitions", 15000)\
         .config('spark.driver.maxResultSize', "15000M")\
         .config('spark.sql.crossJoin.enabled', True)\
@@ -50,23 +50,6 @@ class AddPatientsToCouchRunner:
                 .options(table=table, keyspace=keyspace)\
                 .load()
         
-    def read_from_mysql(self, query, db_name, config):
-        global_config = getConfig()
-        return self.get_spark().read.format("jdbc").\
-             option("url", "jdbc:mysql://"+global_config['mysql']['host']+":" + global_config['mysql']['port']+ "/" + db_name + "?zeroDateTimeBehavior=convertToNull").\
-             option("useUnicode", "true").\
-             option("continueBatchOnError","true").\
-             option("useSSL", "false").\
-             option("user", global_config['mysql']['username']).\
-            option("password", global_config['mysql']['password']).\
-          option("dbtable",query).\
-          option("partitionColumn", config['partitionColumn']).\
-          option("fetchSize", config['fetchsize']).\
-          option("lowerBound", config['lowerBound']).\
-          option("upperBound", config['upperBound']).\
-          option("numPartitions", config['numPartitions']).\
-          load()
-        
     def save_to_couch(self, dataframe, database, createDBOnSave='false'):
         dataframe.write.save(database,"org.apache.bahir.cloudant",
                               bulkSize="500", createDBOnSave=createDBOnSave)
@@ -84,16 +67,14 @@ class AddPatientsToCouchRunner:
 
                 #load data from cassandra
                 for table in self.cassandra_tables:
-                    print(table)
                     cassandraData = self.read_from_cassandra(table).join(self.qualifying_patients, on="person_id").cache()
-
                     cassandraData = transform_for_couch(table, cassandraData)
                     
                     if(table == 'patient'):
                         try:
-                                self.save_to_couch(cassandraData, self.couch_db_name)
+                                self.save_to_couch(cassandraData, self.couchdb_name)
                         except:
-                                self.save_to_couch(cassandraData, self.couch_db_name, 'true')
+                                self.save_to_couch(cassandraData, self.couchdb_name, 'true')
                         cassandraData.unpersist()
                         
                     else:
@@ -101,13 +82,12 @@ class AddPatientsToCouchRunner:
                         all_data_for_patients_in_location = cassandraData.join(patients_in_location, 'person_id')
                         cassandraData.unpersist()
                         try:
-                                all_data_for_patients_in_location.show()
-                                self.save_to_couch(all_data_for_patients_in_location, self.couch_db_name, 'true')
+                                self.save_to_couch(all_data_for_patients_in_location, self.couchdb_name, 'true')
                         except:
-                                self.save_to_couch(all_data_for_patients_in_location, self.couch_db_name)
+                                self.save_to_couch(all_data_for_patients_in_location, self.couchdb_name)
 
                 end = time.time()
-                print("Job took %.2f seconds" % (end - start))    
+                print("Couch Job took %.2f seconds" % (end - start))    
 
             
         
