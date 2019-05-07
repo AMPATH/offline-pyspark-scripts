@@ -19,7 +19,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='Rebuild_Day_0_Staging_Job',
+    dag_id='rebuild_day_0_staging_job',
     default_args=default_args,
     schedule_interval='0 0 * * *',
     dagrun_timeout=timedelta(minutes=60),

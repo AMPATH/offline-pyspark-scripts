@@ -22,7 +22,6 @@ class ProgramEnrollmentJob(Job):
             'lowerBound': 1,
             'upperBound': 500000,
             'numPartitions': 900})\
-        .filter(f.col('voided') == False)\
         .withColumn('couch_id', f.col('uuid'))\
         .withColumn('type', f.lit('program_enrollment'))\
         .withColumn('location', f.struct(

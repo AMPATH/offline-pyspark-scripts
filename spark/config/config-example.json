@@ -1,66 +1,61 @@
 {
   "kafka" : {
-    "topics":["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
-  "kafka-orders" : {
-    "topics":["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
- "kafka-patient-program" : {
-    "topics":["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
-  
-  "kafka-person" : {
-    "topics":["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
-"kafka-labs" : {
-    "topics":["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
- "kafka-encounter" : {
-    "topics": ["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
-  },
- "kafka-hiv-summary" : {
-    "topics": ["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
-    }
- },
-  "kafka-vitals" : {
-    "topics": ["XXXXXXXXXXX"],
-    "config":{
-      "metadata.broker.list": "kafka:9092",
-      "auto.offset.reset": "smallest"
+    "orders" : {
+      "topics":["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+    },
+   "patient-program" : {
+      "topics":["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+    },
+    
+    "person" : {
+      "topics":["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+    },
+  "labs" : {
+      "topics":["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+    },
+   "encounter" : {
+      "topics": ["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+    },
+   "hiv-summary" : {
+      "topics": ["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
+   },
+    "vitals" : {
+      "topics": ["XXXXXXXXXXX"],
+      "config":{
+        "metadata.broker.list": "host:port",
+        "auto.offset.reset": "smallest"
+      }
     }
   },
   "spark": {
     "app_name": "Couch Streaming Pipeline",
     "master": "local[*]",
     "packages":["com.datastax.spark:spark-cassandra-connector_2.11:2.4.0",
-            "org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0"],
+            "org.apache.spark:spark-streaming-0-10_2.11:2.4.0"],
     "conf":{
       "spark.cassandra.connection.host":"******",
       "spark.cassandra.connection.port":"****",
@@ -98,6 +93,7 @@
 "cassandra": {
   "host": "",
   "username": "",
-  "password": ""
+  "password": "",
+  "protocol":""
 }
 }

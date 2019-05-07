@@ -201,7 +201,7 @@ def start_job(kafka_stream, sc, spark_conf):
 def start():
     config = getConfig()
     spark_config = config['spark']
-    kafka_config = config['kafka-orders']
+    kafka_config = config['orders']
     start_spark(app_name=spark_config['app_name'],
                          master=spark_config['master'],
                          spark_config=spark_config['conf'],
