@@ -32,27 +32,55 @@ def run_and_save(job, table):
     save_to_cassandra(dataframe, table)
     
 
-
-
-def start_couchdb_jobs(cassandra_tables):
-    pass
-
-
-
-
 def rebuild(jobs):
-    for job in jobs:
-        cassandra_tables = []
-        start = time.time()
-        cassandra_tables.append(job["table"])
-        run_and_save(job["job"], job["table"])
-        end = time.time()
-        print("Rebuilding" + job["table"] + "took %.2f seconds" % (end - start))
-    
-jobs = [{
-                'table': 'vitals',
-                'job': VitalsJob()
-        }]
+    if not jobs:
+        print('\n No jobs to run \n')
+        return
+    else:
+        for job in jobs:
+                cassandra_tables = []
+                start = time.time()
+                cassandra_tables.append(job["table"])
+                run_and_save(job["job"], job["table"])
+                end = time.time()
+                print("Rebuilding" + job["table"] + "took %.2f seconds" % (end - start))
+
+
+
+
+
+
+#### RUN #####
+## You can add/comment out data to be rebuild into cassandra from the array below    
+jobs = [
+        # {
+        #         'table': 'vitals',
+        #         'job': VitalsJob()
+        # },
+        {
+                'table': 'patient',
+                'job': PatientJob()
+        },
+        {
+                'table': 'program_enrollment',
+                'job': ProgramEnrollmentJob()
+        },
+        # {
+        #         'table': 'hiv_summary',
+        #         'job': HivSummaryJob()
+        # },
+        # {
+        #         'table': 'labs',
+        #         'job': LabsJob()
+        # },
+        # {
+        #         'table': 'lab_orders',
+        #         'job': LabOrdersJob()
+        # },
+        # {
+        #         'table': 'encounter',
+        #         'job': EncounterJob()
+        # }
+        ]
         
 rebuild(jobs)
-#start_couchdb_jobs(cassandra_tables)

@@ -19,7 +19,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='rebuild_day_0_couch_job',
+    dag_id='upsert_metadata_job',
     default_args=default_args,
     schedule_interval='0 0 * * *',
     dagrun_timeout=timedelta(minutes=60),
@@ -31,11 +31,11 @@ bash_command = """
                 --jars /usr/local/airflow/spark-jars/mysql-connector-java-8.0.16.jar --driver-memory 8g \
                 --executor-memory 1g \
                 --packages org.apache.spark:spark-sql_2.11:2.4.0,org.apache.bahir:spark-sql-cloudant_2.11:2.3.2,com.datastax.spark:spark-cassandra-connector_2.11:2.4.0,commons-configuration:commons-configuration:1.9 \
-                day_0_rebuild_couch.py
+                metadata.py
                """
 
 run_this = BashOperator(
-    task_id='rebuild_couch_job',
+    task_id='upsert_metadata_job',
     bash_command=bash_command,
     dag=dag,
 )

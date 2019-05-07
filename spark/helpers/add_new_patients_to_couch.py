@@ -1,11 +1,13 @@
 import os
 import time
+
 import pyspark.sql.functions as f
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import SQLContext, Window
-from couch_transformations import transform_for_couch
-from config import getConfig
+
+from helpers.couch_transformations import transform_for_couch
+from config.config import getConfig
 
 class AddPatientsToCouchRunner:
     

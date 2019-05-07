@@ -2,15 +2,14 @@
 # coding: utf-8
 
 # In[1]:
-
+import datetime
+import time
 
 from pyspark.sql import SparkSession, Row, SQLContext, Window
 from pyspark.sql.types import StructType, StringType, StructField, BooleanType, IntegerType, ArrayType, TimestampType, DoubleType
 from pyspark import SparkContext
-import datetime
-import time
 import pyspark.sql.functions as f
-import datetime
+
 from obs_job import ObsJob 
 from job import Job
 from config.config import getConfig

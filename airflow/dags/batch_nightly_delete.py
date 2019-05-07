@@ -19,7 +19,7 @@ default_args = {
 }
 
 dag = DAG(
-    dag_id='rebuild_day_0_couch_job',
+    dag_id='batch_nightly_delete_job',
     default_args=default_args,
     schedule_interval='0 0 * * *',
     dagrun_timeout=timedelta(minutes=60),
@@ -35,7 +35,7 @@ bash_command = """
                """
 
 run_this = BashOperator(
-    task_id='rebuild_couch_job',
+    task_id='batch_nightly_delete_job',
     bash_command=bash_command,
     dag=dag,
 )

@@ -21,7 +21,7 @@ class PatientJob(Job):
                                         'lowerBound': 1,
                                         'upperBound': 2283150,
                                         'numPartitions': 50
-            }).filter(f.col('voided') == False)
+            })
             
             transformed_patient =  patient.na.fill("").groupBy('person_id').\
                    agg(

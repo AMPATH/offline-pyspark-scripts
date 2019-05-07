@@ -1,10 +1,12 @@
 import os
 import time
+
 import pyspark.sql.functions as f
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import SQLContext, Window
-from openmrs_schemas import OpenmrsSchema
+
+from helpers.openmrs_schemas import OpenmrsSchema
 
 
 def process_encounter(encounter_dataframe):
